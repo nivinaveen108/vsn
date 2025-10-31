@@ -626,6 +626,8 @@ function updateControlAvailability() {
 }
 
 
+
+
 function goHome() {
   window.location.href = 'https://www.nivi108.com';
 }
@@ -1446,6 +1448,19 @@ audioPlayer.addEventListener('seeked', () => {
   color: var(--am-white);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
+}
+/* Controls bar smaller initially */
+.audio-player-container .controls-background {
+  max-height: 40px;                /* tiny initial height */
+  overflow: hidden;
+  transition: max-height 0.25s ease, padding 0.25s ease;
+  padding: 2px 6px;
+}
+
+/* Expand on hover */
+.audio-player-container .controls-background:hover {
+  max-height: 60px;                /* full height on hover */
+  padding: 6px 12px;
 }
 
 .image-display-container {
