@@ -193,6 +193,15 @@
   margin-bottom: 6px;          /* Space below the title */
   transition: all 0.2s ease;   /* Smooth hover effect if needed */
 }
+.youtube-warning {
+  position: absolute;
+  bottom: -20px; /* or adjust */
+  width: 100%;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #ffcc00;
+  display: none;
+}
 
 /* Optional: subtle hover glow effect */
 .controls-title:hover {
@@ -536,6 +545,7 @@
     <option value="youtube">M. S. Subbulakshmi</option>
   </select>
 
+
         <div class="volume-speed-container">
             <label for="volume-slider">Vol:</label>
             <input type="range" id="volume-slider" min="0" max="1" value="0.5" step="0.05" >
@@ -569,7 +579,9 @@
 </button>
 
 
-  
+  <span id="youtube-warning" style="display:none; color:#ffcc00; font-size:0.8rem; margin-left:10px;">
+  ⚠️ YouTube may interrupt playback if not on Premium.
+</span>
 
 	
     </div>
@@ -1460,12 +1472,29 @@ audioPlayer.addEventListener('seeked', () => {
     }
 
     updateImage(0);
+
 })();
 
 
 </script>
 <!-- YouTube API -->
 <script src="https://www.youtube.com/iframe_api"></script>
+<!-- All your HTML content here -->
+
+<script>
+const sourceSelect = document.getElementById("sourceSelect");
+const ytWarning = document.getElementById("youtube-warning");
+
+sourceSelect.addEventListener("change", () => {
+  if (sourceSelect.value === "youtube") {
+    ytWarning.style.display = "block";
+  } else {
+    ytWarning.style.display = "none";
+  }
+});
+</script>
+</body>
+</html>
 
 </body>
 </html>
