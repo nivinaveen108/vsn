@@ -181,7 +181,33 @@
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+.controls-title {
+  width: 100%;                 /* Full width of the controls bar */
+  text-align: center;          /* Center text inside the div */
+  font-family: "SF Pro Display", "San Francisco", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;            /* Semi-bold for Apple Music style */
+  font-size: 1.1rem;           /* Slightly larger */
+  color: #ffffff;              /* White or adjust to match theme */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4); /* Subtle shadow for depth */
+  letter-spacing: 0.5px;       /* Sleek spacing */
+  margin-bottom: 6px;          /* Space below the title */
+  transition: all 0.2s ease;   /* Smooth hover effect if needed */
+}
 
+/* Optional: subtle hover glow effect */
+.controls-title:hover {
+  text-shadow: 0 2px 4px rgba(255,255,255,0.6);
+  color: #f1f1f1;
+}
+.controls-subtitle {
+  font-family: "SF Pro Display", "San Francisco", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 500;
+  font-size: 1rem; 
+  color: #ffd700; /* gold-ish accent */
+  text-shadow: 0 0 6px rgba(255, 215, 0, 0.5), 0 1px 2px rgba(0,0,0,0.6);
+  font-style: italic;
+  line-height: 1.3em;
+}
 .volume-speed-container {
   display: flex;
   align-items: center;
@@ -498,7 +524,11 @@
 
  <div class="audio-player-container">
 <!-- Audio source selector & YouTube input -->
+ <!-- Title inside the controls bar -->
+  <div class="controls-title">Om Namo Nārāyanāya</div>
+ 
 <div class="controls-background">
+ 
        <div style="display:flex; align-items:center; gap:8px;">
   <label style="font-size:0.9rem;">Audio Source:</label>
   <select id="sourceSelect" class="control-button" style="height:36px; min-width:110px;">
@@ -563,7 +593,9 @@
         <span id="elapsed-time">00:00</span>
         <span id="remaining-time">00:00</span>
     </div>
-
+<a href="https://www.visvasvsn.org/" target="_blank" class="controls-subtitle">
+    Learn Online to CHANT from the VIśVᾹS Institute of Sri Vishnu Sahasranamam, Chennai, India
+  </a>
     <!-- Container for the accordion jump-to buttons -->
     <div id="jump-to-container"></div>
     
