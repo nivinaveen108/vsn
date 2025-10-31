@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Stotram Audio Player</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  
+<style>
+/* --- Olive Green Theme --- */
+:root {
+  --olive-green-dark: #333d29;
+  --olive-green-medium: #545b4c;
+  --olive-green-light: #7b816f;
+  --off-white: #f5f5f5;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.audio-player-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: var(--olive-green-dark);
+  color: var(--off-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.image-display-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: auto;
+  margin-bottom: 1.5rem;
+}
+
+#synced-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+#image-filename-display {
+  margin-top: 10px;
+  margin-bottom: 1rem;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: var(--off-white);
+  text-align: center;
+}
+
+/* Hide the native audio controls */
+#custom-audio-player {
+  display: none;
+}
+
+/* --- Custom Progress Bar Styles --- */
+.progress-bar-wrapper {
+  position: relative;
+  width: 100%;
+  height: 15px;
+  margin: 1rem 0;
+}
+
+#progress-bar-track {
+  width: 100%;
+  height: 8px;
+  background-color: var(--olive-green-medium);
+  border-radius: 4px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#progress-bar-fill {
+  height: 100%;
+  width: 0;
+  background-color: var(--olive-green-light);
+  border-radius: 4px;
+}
+
+#progress-bar-click-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  cursor: pointer;
+}
+
+#progress-bar-markers {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.progress-marker {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--off-white);
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.progress-marker::after {
+  content: attr(data-title);
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--olive-green-dark);
+  color: var(--off-white);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.progress-bar-wrapper:hover .progress-marker::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.time-display-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.controls-background {
+  background-color: rgba(123, 129, 111, 0.2);
+  border-radius: 50px;
+  padding: 20px;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.controls-background button {
+  background-color: var(--olive-green-medium);
+  color: var(--off-white);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.volume-speed-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+#volume-slider, #speed-slider {
+  width: 100px;
+  -webkit-appearance: none;
+  background-color: var(--olive-green-light);
+  border-radius: 4px;
+  height: 8px;
+  cursor: pointer;
+}
+
+#volume-slider::-webkit-slider-thumb, #speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--off-white);
+  cursor: pointer;
+}
+
+#volume-slider::-moz-range-thumb, #speed-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--off-white);
+  cursor: pointer;
+  border: none;
+}
+
+#volume-slider::-moz-range-track, #speed-slider::-moz-range-track {
+  background-color: var(--olive-green-light);
+  border-radius: 4px;
+  height: 8px;
+}
+
+#speed-display {
+  width: 50px;
+  text-align: center;
+  color: var(--off-white);
+}
+
+#play-pause-btn {
+  width: 50px;
+  height: 50px;
+  font-size: 1.8rem;
+  transition: transform 0.3s ease-in-out;
+}
+
+#play-pause-btn:hover {
+  transform: scale(1.1);
+}
+
+/* --- New Fast-Forward Button Style --- */
+#silent-fast-fwd-btn {
+  background-color: var(--olive-green-medium);
+  color: var(--off-white);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#silent-fast-fwd-btn:hover {
+  background-color: var(--olive-green-light);
+}
+
+/* Hover effect for all buttons within the control bar */
+.controls-background button:hover {
+  background-color: var(--olive-green-light);
+}
+
+/* --- New Repeat Segment Button Style --- */
+#repeat-segment-btn {
+  background-color: var(--olive-green-medium);
+  color: var(--off-white);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#repeat-segment-btn:hover {
+  background-color: var(--olive-green-light);
+}
+
+/* Active state for the repeat button */
+#repeat-segment-btn.active {
+  background-color: #f7a36c; /* A distinct, eye-catching color */
+  color: var(--olive-green-dark);
+  border: 2px solid var(--olive-green-dark);
+}
+
+/* --- Accordion & Jump To Buttons Styles --- */
+#jump-to-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 10px;
+}
+
+.accordion-group {
+  margin-bottom: 10px;
+}
+
+.accordion-header {
+  background-color: var(--olive-green-medium);
+  color: var(--off-white);
+  cursor: pointer;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  border-radius: var(--border-radius);
+}
+
+.accordion-header:hover {
+  background-color: var(--olive-green-light);
+}
+
+.accordion-content {
+  display: none;
+  padding: 10px;
+  background-color: #4a523e;
+  overflow: hidden;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.accordion-header.active + .accordion-content {
+  display: flex;
+}
+
+.jump-to-button {
+  background-color: var(--olive-green-medium);
+  color: var(--off-white);
+  border: 1px solid var(--olive-green-light);
+  border-radius: var(--border-radius);
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.jump-to-button:hover {
+  background-color: var(--olive-green-light);
+}
+#repeat-all-btn {
+    background-color: var(--olive-green-medium);
+    color: var(--off-white);
+    border: none;
+    border-radius: 50%;
+    width: auto; /* Allow the button to grow with the text */
+    min-width: 40px; /* Maintain minimum circular size */
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px; /* Adds a small gap between the icon and text */
+    padding: 0 10px; /* Add some padding to accommodate text */
+}
+
+#repeat-all-btn:hover {
+    background-color: var(--olive-green-light);
+}
+
+/* Active state for the repeat-all button */
+#repeat-all-btn.active {
+    background-color: #f7a36c;
+    border: 2px solid var(--olive-green-dark);
+}
+
+/* Style for the dynamically inserted text */
+#repeat-all-btn .repeat-all-text {
+    font-size: 0.8rem; /* Use a smaller font size */
+    font-weight: normal; /* Ensure it's not bold */
+    color: var(--olive-green-dark); /* Color the text for the active state */
+    display: none; /* Hide by default */
+}
+
+/* Make the text visible when the button is active */
+#repeat-all-btn.active .repeat-all-text {
+    display: inline;
+}
+
+
+
+  </style>
+
+</head>
+<body>
+
+ <div class="audio-player-container">
+<!-- Audio source selector & YouTube input -->
+       <div style="display:flex; align-items:center; gap:8px;">
+  <label style="font-size:0.9rem;">Audio Source:</label>
+  <select id="sourceSelect" class="control-button" style="height:36px; min-width:110px;">
+    <option value="local" selected>VISVAS Audio</option>
+    <option value="youtube">M. S. Subbulakshmi</option>
+  </select>
+
+  <input id="yt-url-input" type="text" placeholder="YouTube url or id" style="width:240px; padding:6px; border-radius:6px; border:none; display:none;" title="Paste YouTube URL or ID">
+  <button id="yt-load-btn" class="control-button" style="height:36px; display:none;">Load Other YouTube</button>
+</div>
+    <!-- Custom controls in an oval background -->
+    <div class="controls-background">
+        <button id="rewind-10-btn" title="Rewind 10 seconds"><i class="fa-solid fa-backward-fast"></i></button>
+        <button id="play-pause-btn" title="Play / Pause">▶</button>
+        <button id="forward-10-btn" title="Forward 10 seconds"><i class="fa-solid fa-forward-fast"></i></button>
+        <button id="silent-fast-fwd-btn" title="Fast Forward Silently">⚡⏭</button>
+        <button id="repeat-segment-btn" title="Repeat Shlokam"><i class="fas fa-undo"></i></button>
+        <button id="repeat-all-btn" title="Repeat All Shlokas">
+    <i class="fas fa-redo-alt"></i>
+    <span class="repeat-all-text"></span>
+</button>
+
+        <div class="volume-speed-container">
+            <label for="volume-slider">Vol:</label>
+            <input type="range" id="volume-slider" min="0" max="1" value="0.5" step="0.05">
+            <label for="speed-slider">Speed:</label>
+            <input type="range" id="speed-slider" min="0.5" max="2" value="1" step=".25">
+            <span id="speed-display">1.00x</span>
+        </div>
+  
+
+	
+    </div>
+    
+      <div class="image-display-container">
+        <div id="image-filename-display"></div>
+        <img id="synced-image" src="" alt="Audio synced image" style="display: none;">
+    </div>
+    
+    <!-- Custom progress bar with markers for seeking (now placed above controls) -->
+    <div class="progress-bar-wrapper">
+        <div id="progress-bar-track">
+            <div id="progress-bar-fill"></div>
+        </div>
+        <div id="progress-bar-markers"></div>
+        <div id="progress-bar-click-area"></div>
+    </div>
+    
+    <!-- Time display container -->
+    <div class="time-display-container">
+        <span id="elapsed-time">00:00</span>
+        <span id="remaining-time">00:00</span>
+    </div>
+
+    <!-- Container for the accordion jump-to buttons -->
+    <div id="jump-to-container"></div>
+    
+    <audio id="custom-audio-player" preload="metadata"></audio>
+<!-- Hidden YouTube container (audio-only) -->
+<div id="youtube-container" style="display:none;">
+  <div id="youtube-player"></div>
+</div>
+
+</div>
+
+
+<script>
+(function() {
+    const audioPlayer = document.getElementById('custom-audio-player');
+    const rewind10Btn = document.getElementById('rewind-10-btn');
+    const forward10Btn = document.getElementById('forward-10-btn');
+    const silentFastFwdBtn = document.getElementById('silent-fast-fwd-btn');
+    const syncedImage = document.getElementById('synced-image');
+    const filenameDisplay = document.getElementById('image-filename-display');
+    const progressBarTrack = document.getElementById('progress-bar-track');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const progressBarMarkers = document.getElementById('progress-bar-markers');
+    const progressBarClickArea = document.getElementById('progress-bar-click-area');
+    const jumpToContainer = document.getElementById('jump-to-container');
+    const speedSlider = document.getElementById('speed-slider');
+    const speedDisplay = document.getElementById('speed-display');
+    const volumeSlider = document.getElementById('volume-slider');
+    const elapsedTimeDisplay = document.getElementById('elapsed-time');
+    const remainingTimeDisplay = document.getElementById('remaining-time');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+
+    const baseUrl = 'https://naveen1241.github.io/vsn_yti_player/VSN/';
+    audioPlayer.src = baseUrl + 'VSN Audio - Complete_CBR.mp3';
+
+    // ---- New Constants and State for Silent Fast-Forward ----
+    const fastPlaybackRate = 16.0; // Max fast-forward speed
+    const normalPlaybackRate = 1.0;
+    let isSeeking = false;
+
+    // --- New variables for repeat segment functionality ---
+    let isRepeatSegmentActive = false;
+    let segmentStart = 0;
+    let segmentEnd = 0;
+    const repeatSegmentBtn = document.getElementById('repeat-segment-btn');
+
+// --- Variables for the new repeat all segments functionality ---
+let segmentRepeatAllMode = 0; // 0 = off, 1 = repeat once, 2 = repeat twice
+let repeatAllCount = 0;
+let currentSegmentIndex = 0;
+const repeatAllBtn = document.getElementById('repeat-all-btn');
+const repeatAllTextSpan = repeatAllBtn.querySelector('.repeat-all-text');
+
+let isInternalSeek = false;
+
+
+    // -----------------------------
+    // YouTube integration & switching
+    // -----------------------------
+    let ytPlayer = null;
+    let usingYouTube = false;
+    const sourceSelect = document.getElementById('sourceSelect');
+    const ytUrlInput = document.getElementById('yt-url-input');
+    const ytLoadBtn = document.getElementById('yt-load-btn');
+    const youtubeContainer = document.getElementById('youtube-container');
+
+    // Parse video id from full URL or id (returns null if none)
+   function extractYouTubeId(urlOrId) {
+    if (!urlOrId) return null;
+    urlOrId = urlOrId.trim();
+
+    // If it's already a 11-character ID
+    if (/^[0-9A-Za-z_-]{11}$/.test(urlOrId)) return urlOrId;
+
+    // Match standard YouTube URL formats
+    const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([0-9A-Za-z_-]{11})/;
+    const match = urlOrId.match(regex);
+    return match ? match[1] : null;
+}
+
+
+    // Called by the YT API when it loads
+    window.onYouTubeIframeAPIReady = function() {
+      // don't create player yet until user loads an id
+      console.log('YouTube IFrame API ready');
+    };
+
+    // create or load video id into player
+    function ensureYTPlayer(videoId) {
+      return new Promise((resolve) => {
+        if (!videoId) return resolve(null);
+        // if player exists, just load the video
+        if (ytPlayer) {
+          try {
+            ytPlayer.cueVideoById(videoId);
+            return resolve(ytPlayer);
+          } catch (e) { console.warn(e); }
+        }
+        // create new YT.Player
+        ytPlayer = new YT.Player('youtube-player', {
+          height: '0', width: '0', // hidden
+          videoId,
+          playerVars: { controls: 0, disablekb: 1, modestbranding: 1 },
+          events: {
+            onReady: () => {
+              console.log('YT player ready for', videoId);
+              resolve(ytPlayer);
+            },
+            onStateChange: (e) => {
+              // nothing heavy here; sync loop handles updates
+            }
+          }
+        });
+      });
+    }
+
+    // When user changes source via drop-down
+    // When user changes source via drop-down
+sourceSelect.addEventListener('change', (e) => {
+    const val = e.target.value;
+
+    // Pause whatever is currently playing
+    if (!usingYouTube && !audioPlayer.paused) {
+        audioPlayer.pause();
+        playPauseBtn.textContent = '▶';
+    }
+    if (usingYouTube && ytPlayer) {
+        try { ytPlayer.pauseVideo(); } catch(e){ console.warn(e); }
+        stopYTSyncLoop();
+    }
+
+    if (val === 'youtube') {
+        // Switch to YouTube mode
+        youtubeContainer.style.display = 'block';
+        usingYouTube = true;
+        // Do not autoplay, user can press play
+    } else {
+        // Switch to local audio
+        youtubeContainer.style.display = 'none';
+        usingYouTube = false;
+        // Do not autoplay, user can press play
+    }
+
+    // Update image sync data immediately for the new source
+    setImageSyncData(val);
+    createProgressBarMarkers();
+    createJumpToButtons();
+});
+
+
+    // Load YT video id/button
+    ytLoadBtn.addEventListener('click', () => {
+        const candidate = ytUrlInput.value.trim();
+        const id = extractYouTubeId(candidate);
+        if (!id) { alert('Please enter a valid YouTube URL or ID (11 chars)'); return; }
+        ensureYTPlayer(id).then(() => {
+            // cue and show container
+            youtubeContainer.style.display = 'block';
+            sourceSelect.value = 'youtube';
+            usingYouTube = true;
+            audioPlayer.pause();
+            // sync playhead: set youtube to same time as audio when switching
+            const t = audioPlayer.currentTime || 0;
+            try { ytPlayer.seekTo(t, true); } catch(e) {}
+            // do not autoplay unless user presses play
+        });
+    });
+
+
+
+    // sync loop to update UI (progress, image) while using youtube
+    let ytSyncRaf = null;
+    function startYTSyncLoop() {
+      if (ytSyncRaf) return; // already running
+      function tick() {
+        if (!usingYouTube || !ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') {
+          ytSyncRaf = null;
+          return;
+        }
+        const t = ytPlayer.getCurrentTime();
+        // update image/progress using the same functions used by audio mode
+        updateImage(t);
+        if (!isNaN(audioPlayer.duration) && audioPlayer.duration > 0) {
+          // update progress fill: we don't know YT duration reliably until loaded; try getDuration()
+          const dur = ytPlayer.getDuration() || audioPlayer.duration;
+          const pct = (t / dur) * 100;
+          progressBarFill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+        }
+        // also update textual time display to match
+        elapsedTimeDisplay.textContent = formatTime(t);
+        const dur = ytPlayer.getDuration() || audioPlayer.duration || 0;
+        remainingTimeDisplay.textContent = '-' + formatTime(Math.max(0, dur - t));
+        ytSyncRaf = requestAnimationFrame(tick);
+      }
+      ytSyncRaf = requestAnimationFrame(tick);
+    }
+
+    function stopYTSyncLoop() {
+      if (ytSyncRaf) {
+        cancelAnimationFrame(ytSyncRaf);
+        ytSyncRaf = null;
+      }
+    }
+
+
+
+    /**
+     * Parses a time string in 'mm:ss' or 'hh:mm:ss' format to seconds.
+     * @param {string} timeString - The time string to parse.
+     * @returns {number} The total time in seconds.
+     */
+    function parseTime(timeString) {
+        const parts = timeString.split(':').map(Number);
+        if (parts.length === 2) {
+            return parts[0] * 60 + parts[1];
+        } else if (parts.length === 3) {
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        }
+        return 0;
+    }
+
+    /**
+     * Formats a time in seconds to HH:MM:SS or MM:SS format.
+     * @param {number} seconds - The time in seconds.
+     * @returns {string} The formatted time string.
+     */
+    function formatTime(seconds) {
+        if (isNaN(seconds) || seconds < 0) {
+            return '00:00';
+        }
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+
+        const pad = (num) => (num < 10 ? '0' : '') + num;
+
+        if (h > 0) {
+            return `${pad(h)}:${pad(m)}:${pad(s)}`;
+        }
+        return `${pad(m)}:${pad(s)}`;
+    }
+
+
+// --- Step 1: Define source data for audio and YouTube ---
+const imageSyncDataSource = {
+    audio: {
+        'Poorvaangam': {
+            '00:00': 'Poorvaangam_1.png', '00:14': 'Poorvaangam_ 3.png', '00:25': 'Poorvaangam_ 4.png', '00:37': 'Poorvaangam_ 5.png', '00:47': 'Poorvaangam_ 6.png', '01:03': 'Poorvaangam_ 7.png', '01:18': 'Poorvaangam_ 8.png', '01:33': 'Poorvaangam_ 9.png', '01:44': 'Poorvaangam_ 10.png', '01:58': 'Poorvaangam_ 11.png', '02:09': 'Poorvaangam_ 12.png', '02:21': 'Poorvaangam_ 13.png', '02:33': 'Poorvaangam_ 14.png', '02:46': 'Poorvaangam_ 15.png', '02:56': 'Poorvaangam_ 16.png', '03:08': 'Poorvaangam_ 17.png', '03:20': 'Poorvaangam_ 18.png', '03:32': 'Poorvaangam_ 19.png', '03:42': 'Poorvaangam_ 20.png', '03:54': 'Poorvaangam_ 21.png', '04:06': 'Poorvaangam_ 22.png'
+        },
+        'Poorvanyaasam': {
+            '04:20': 'Purvanyaasaha.png'
+        },
+        'Dhyaanam': {
+            '05:34': 'Dhyaanam_1.png', '06:11': 'Dhyaanam_2.png', '06:42': 'Dhyaanam_3.png', '07:07': 'Dhyaanam_4.png', '07:26': 'Dhyaanam_5.png', '07:36': 'Dhyaanam_6.png', '07:51': 'Dhyaanam_7.png', '08:03': 'Dhyaanam_8.png'
+        },
+        'Stotram': {
+            '08:14': 'Shlokam001.png', '08:27': 'Shlokam002.png', '08:39': 'Shlokam003.png', '08:51': 'Shlokam004.png', '09:02': 'Shlokam005.png', '09:13': 'Shlokam006.png', '09:24': 'Shlokam007.png', '09:37': 'Shlokam008.png', '09:48': 'Shlokam009.png', '10:00': 'Shlokam010.png', '10:11': 'Shlokam011.png', '10:23': 'Shlokam012.png', '10:35': 'Shlokam013.png', '10:46': 'Shlokam014.png', '10:59': 'Shlokam015.png', '11:11': 'Shlokam016.png', '11:22': 'Shlokam017.png', '11:33': 'Shlokam018.png', '11:45': 'Shlokam019.png', '11:56': 'Shlokam020.png', '12:08': 'Shlokam021.png', '12:18': 'Shlokam022.png', '12:30': 'Shlokam023.png', '12:41': 'Shlokam024.png', '12:54': 'Shlokam025.png', '13:04': 'Shlokam026.png', '13:16': 'Shlokam027.png', '13:27': 'Shlokam028.png', '13:38': 'Shlokam029.png', '13:49': 'Shlokam030.png', '14:01': 'Shlokam031.png', '14:13': 'Shlokam032.png', '14:24': 'Shlokam033.png', '14:35': 'Shlokam034.png', '14:46': 'Shlokam035.png', '14:57': 'Shlokam036.png', '15:08': 'Shlokam037.png', '15:19': 'Shlokam038.png', '15:31': 'Shlokam039.png', '15:41': 'Shlokam040.png', '15:52': 'Shlokam041.png', '16:04': 'Shlokam042.png', '16:16': 'Shlokam043.png', '16:28': 'Shlokam044.png', '16:39': 'Shlokam045.png', '16:50': 'Shlokam046.png', '17:01': 'Shlokam047.png', '17:14': 'Shlokam048.png', '17:26': 'Shlokam049.png', '17:36': 'Shlokam050.png', '17:48': 'Shlokam051.png', '17:59': 'Shlokam052.png', '18:10': 'Shlokam053.png', '18:22': 'Shlokam054.png', '18:34': 'Shlokam055.png', '18:44': 'Shlokam056.png', '18:57': 'Shlokam057.png', '19:09': 'Shlokam058.png', '19:20': 'Shlokam059.png', '19:32': 'Shlokam060.png', '19:43': 'Shlokam061.png', '19:55': 'Shlokam062.png', '20:06': 'Shlokam063.png', '20:18': 'Shlokam064.png', '20:31': 'Shlokam065.png', '20:42': 'Shlokam066.png', '20:54': 'Shlokam067.png', '21:05': 'Shlokam068.png', '21:16': 'Shlokam069.png', '21:27': 'Shlokam070.png', '21:40': 'Shlokam071.png', '21:52': 'Shlokam072.png', '22:03': 'Shlokam073.png', '22:15': 'Shlokam074.png', '22:24': 'Shlokam075.png', '22:36': 'Shlokam076.png', '22:47': 'Shlokam077.png', '22:59': 'Shlokam078.png', '23:10': 'Shlokam079.png', '23:21': 'Shlokam080.png', '23:33': 'Shlokam081.png', '23:44': 'Shlokam082.png', '23:55': 'Shlokam083.png', '24:06': 'Shlokam084.png', '24:18': 'Shlokam085.png', '24:29': 'Shlokam086.png', '24:40': 'Shlokam087.png', '24:50': 'Shlokam088.png', '25:01': 'Shlokam089.png', '25:13': 'Shlokam090.png', '25:25': 'Shlokam091.png', '25:37': 'Shlokam092.png', '25:47': 'Shlokam093.png', '25:59': 'Shlokam094.png', '26:09': 'Shlokam095.png', '26:20': 'Shlokam096.png', '26:31': 'Shlokam097.png', '26:42': 'Shlokam098.png', '26:53': 'Shlokam099.png', '27:04': 'Shlokam100.png', '27:15': 'Shlokam101.png', '27:26': 'Shlokam102.png', '27:37': 'Shlokam103.png', '27:49': 'Shlokam104.png', '28:00': 'Shlokam105.png', '28:12': 'Shlokam106.png', '28:23': 'Shlokam107.png', '28:41': 'Shlokam108.png', '29:16': 'ShlokamEnding.png'
+        },
+        'Phalashruthi': {
+            '29:20': 'Phalashruthi_1.png', '29:32': 'Phalashruthi_2.png', '29:44': 'Phalashruthi_3.png', '29:56': 'Phalashruthi_4.png', '30:10': 'Phalashruthi_5.png', '30:22': 'Phalashruthi_6.png', '30:33': 'Phalashruthi_7.png', '30:44': 'Phalashruthi_8.png', '30:55': 'Phalashruthi_9.png', '31:06': 'Phalashruthi_10.png', '31:18': 'Phalashruthi_11.png', '31:29': 'Phalashruthi_12.png', '31:40': 'Phalashruthi_13.png', '31:52': 'Phalashruthi_14.png', '32:03': 'Phalashruthi_15.png', '32:14': 'Phalashruthi_16.png', '32:27': 'Phalashruthi_17.png', '32:37': 'Phalashruthi_18.png', '32:48': 'Phalashruthi_19.png', '33:01': 'Phalashruthi_20.png', '33:13': 'Phalashruthi_21.png', '33:27': 'Phalashruthi_22.png', '33:40': 'Phalashruthi_23.png', '33:55': 'Phalashruthi_24.png', '34:11': 'Phalashruthi_25.png', '34:29': 'Phalashruthi_26.png', '34:44': 'Phalashruthi_27.png', '35:22': 'Phalashruthi_28.png', '35:43': 'Phalashruthi_29.png', '36:01': 'Phalashruthi_30.png', '36:13': 'Phalashruthi_31.png', '36:26': 'Phalashruthi_32.png', '36:40': 'Phalashruthi_33.png', '36:50': 'Phalashruthi_34.png'
+        }
+    },
+    youtube: {
+        'Poorvaangam': {
+            '00:00': 'Poorvaangam_1.png', '00:15': 'Poorvaangam_ 3.png', '00:25': 'Poorvaangam_ 4.png', '00:34': 'Poorvaangam_ 5.png', '00:43': 'Poorvaangam_ 6.png', '00:56': 'Poorvaangam_ 7.png', '01:08': 'Poorvaangam_ 8.png', '01:20': 'Poorvaangam_ 9.png', '01:30': 'Poorvaangam_ 10.png', '01:41': 'Poorvaangam_ 11.png', '01:50': 'Poorvaangam_ 12.png', '02:00': 'Poorvaangam_ 13.png', '02:09': 'Poorvaangam_ 14.png', '02:19': 'Poorvaangam_ 15.png', '02:27': 'Poorvaangam_ 16.png', '02:37': 'Poorvaangam_ 17.png', '02:46': 'Poorvaangam_ 18.png', '02:55': 'Poorvaangam_ 19.png', '03:04': 'Poorvaangam_ 20.png', '03:14': 'Poorvaangam_ 21.png', '03:23': 'Poorvaangam_ 22.png'
+        },
+        'Poorvanyaasam': {
+            '03:33': 'Purvanyaasaha.png'
+        },
+        'Dhyaanam': {
+            '04:31': 'Dhyaanam_1.png', '04:57': 'Dhyaanam_2.png', '05:21': 'Dhyaanam_3.png', '05:44': 'Dhyaanam_4.png', '05:59': 'Dhyaanam_5.png', '06:08': 'Dhyaanam_6.png', '06:19': 'Dhyaanam_7.png', '06:29': 'Dhyaanam_8.png'
+        },
+        'Stotram': {
+            '06:40': 'Shlokam001.png', '06:55': 'Shlokam002.png', '07:04': 'Shlokam003.png', '07:13': 'Shlokam004.png', '07:22': 'Shlokam005.png', '07:31': 'Shlokam006.png', '07:40': 'Shlokam007.png', '07:50': 'Shlokam008.png', '07:59': 'Shlokam009.png', '08:08': 'Shlokam010.png', '08:16': 'Shlokam011.png', '08:26': 'Shlokam012.png', '08:34': 'Shlokam013.png', '08:44': 'Shlokam014.png', '08:54': 'Shlokam015.png', '09:03': 'Shlokam016.png', '09:12': 'Shlokam017.png', '09:21': 'Shlokam018.png', '09:30': 'Shlokam019.png', '09:39': 'Shlokam020.png', '09:48': 'Shlokam021.png', '09:57': 'Shlokam022.png', '10:06': 'Shlokam023.png', '10:16': 'Shlokam024.png', '10:26': 'Shlokam025.png', '10:35': 'Shlokam026.png', '10:44': 'Shlokam027.png', '10:53': 'Shlokam028.png', '11:01': 'Shlokam029.png', '11:10': 'Shlokam030.png', '11:20': 'Shlokam031.png', '11:29': 'Shlokam032.png', '11:37': 'Shlokam033.png', '11:46': 'Shlokam034.png', '11:55': 'Shlokam035.png', '12:04': 'Shlokam036.png', '12:12': 'Shlokam037.png', '12:21': 'Shlokam038.png', '12:30': 'Shlokam039.png', '12:40': 'Shlokam040.png', '12:48': 'Shlokam041.png', '12:57': 'Shlokam042.png', '13:06': 'Shlokam043.png', '13:16': 'Shlokam044.png', '13:25': 'Shlokam045.png', '13:34': 'Shlokam046.png', '13:43': 'Shlokam047.png', '13:53': 'Shlokam048.png', '14:02': 'Shlokam049.png', '14:11': 'Shlokam050.png', '14:20': 'Shlokam051.png', '14:28': 'Shlokam052.png', '14:37': 'Shlokam053.png', '14:46': 'Shlokam054.png', '14:55': 'Shlokam055.png', '15:04': 'Shlokam056.png', '15:14': 'Shlokam057.png', '15:23': 'Shlokam058.png', '15:31': 'Shlokam059.png', '15:41': 'Shlokam060.png', '15:50': 'Shlokam061.png', '15:59': 'Shlokam062.png', '16:08': 'Shlokam063.png', '16:17': 'Shlokam064.png', '16:26': 'Shlokam065.png', '16:35': 'Shlokam066.png', '16:45': 'Shlokam067.png', '16:54': 'Shlokam068.png', '17:02': 'Shlokam069.png', '17:11': 'Shlokam070.png', '17:21': 'Shlokam071.png', '17:30': 'Shlokam072.png', '17:39': 'Shlokam073.png', '17:49': 'Shlokam074.png', '17:57': 'Shlokam075.png', '18:06': 'Shlokam076.png', '18:15': 'Shlokam077.png', '18:25': 'Shlokam078.png', '18:33': 'Shlokam079.png', '18:42': 'Shlokam080.png', '18:51': 'Shlokam081.png', '19:00': 'Shlokam082.png', '19:10': 'Shlokam083.png', '19:19': 'Shlokam084.png', '19:27': 'Shlokam085.png', '19:36': 'Shlokam086.png', '19:45': 'Shlokam087.png', '19:53': 'Shlokam088.png', '20:02': 'Shlokam089.png', '20:10': 'Shlokam090.png', '20:20': 'Shlokam091.png', '20:29': 'Shlokam092.png', '20:37': 'Shlokam093.png', '20:46': 'Shlokam094.png', '20:54': 'Shlokam095.png', '21:02': 'Shlokam096.png', '21:10': 'Shlokam097.png', '21:19': 'Shlokam098.png', '21:28': 'Shlokam099.png', '21:37': 'Shlokam100.png', '21:46': 'Shlokam101.png', '21:55': 'Shlokam102.png', '22:04': 'Shlokam103.png', '22:12': 'Shlokam104.png', '22:22': 'Shlokam105.png', '22:30': 'Shlokam106.png', '22:40': 'Shlokam107.png', '22:52': 'Shlokam108.png', '23:19': 'ShlokamEnding.png'
+        },
+        'Phalashruthi': {
+            '23:22': 'Phalashruthi_1.png', '23:31': 'Phalashruthi_2.png', '23:41': 'Phalashruthi_3.png', '23:51': 'Phalashruthi_4.png', '24:02': 'Phalashruthi_5.png', '24:12': 'Phalashruthi_6.png', '24:21': 'Phalashruthi_7.png', '24:30': 'Phalashruthi_8.png', '24:40': 'Phalashruthi_9.png', '24:49': 'Phalashruthi_10.png', '24:57': 'Phalashruthi_11.png', '25:06': 'Phalashruthi_12.png', '25:16': 'Phalashruthi_13.png', '25:25': 'Phalashruthi_14.png', '25:34': 'Phalashruthi_15.png', '25:42': 'Phalashruthi_16.png', '25:52': 'Phalashruthi_17.png', '26:02': 'Phalashruthi_18.png', '26:11': 'Phalashruthi_19.png', '26:22': 'Phalashruthi_20.png', '26:32': 'Phalashruthi_21.png', '26:42': 'Phalashruthi_22.png', '26:54': 'Phalashruthi_23.png', '27:06': 'Phalashruthi_24.png', '27:21': 'Phalashruthi_25.png', '27:35': 'Phalashruthi_26.png', '27:48': 'Phalashruthi_27.png', '28:20': 'Phalashruthi_28.png', '28:41': 'Phalashruthi_29.png', '28:53': 'Phalashruthi_30.png', '29:05': 'Phalashruthi_31.png', '29:15': 'Phalashruthi_32.png', '29:29': 'Phalashruthi_33.png', '29:45': 'Phalashruthi_34.png'
+        }
+    }
+};
+
+
+// --- Step 2: Variables to hold active data ---
+let imageSyncData = {};
+let flatImageSyncData = {};
+let sortedSegmentTimestamps = [];
+
+// --- Step 3: Dynamic setter ---
+function setImageSyncData(source = 'audio') {
+    if (imageSyncDataSource[source]) {
+        imageSyncData = imageSyncDataSource[source];
+
+        flatImageSyncData = Object.values(imageSyncData).reduce((acc, current) => {
+            Object.assign(acc, current);
+            return acc;
+        }, {});
+
+        sortedSegmentTimestamps = Object.keys(flatImageSyncData)
+            .map(parseTime)
+            .sort((a, b) => a - b);
+    } else {
+        console.warn('Invalid imageSyncData source:', source);
+    }
+}
+
+// --- Step 4: Auto-detect source ---
+function updateImageSyncSource() {
+    let source = 'audio'; // default
+
+    // Detect if YouTube is in use
+    if (typeof ytPlayer !== 'undefined' && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+        source = 'youtube';
+    }
+
+    setImageSyncData(source);
+}
+
+// --- Step 5: Call this once when initializing / switching players ---
+updateImageSyncSource();
+
+
+
+
+
+
+
+
+
+
+
+    // Flattened version for the image sync logic
+    flatImageSyncData = Object.values(imageSyncData).reduce((acc, current) => {
+        Object.assign(acc, current);
+        return acc;
+    }, {});
+    
+// --- Create the sorted timestamps array (must be AFTER flatImageSyncData) ----
+sortedSegmentTimestamps = Object.keys(flatImageSyncData).map(parseTime).sort((a, b) => a - b);
+    /**
+     * Rewinds the audio by 10 seconds, not going below zero.
+     */
+    function rewind10Seconds() {
+    if (usingYouTube && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+        const t = Math.max(0, ytPlayer.getCurrentTime() - 10);
+        ytPlayer.seekTo(t, true);
+    } else {
+        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 10);
+    }
+}
+
+    
+    /**
+     * Forwards the audio by 10 seconds, not exceeding the total duration.
+     */
+    
+function forward10Seconds() {
+    if (usingYouTube && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+        const dur = ytPlayer.getDuration() || 0;
+        const t = Math.min(dur, ytPlayer.getCurrentTime() + 10);
+        ytPlayer.seekTo(t, true);
+    } else {
+        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 10);
+    }
+}
+
+
+    function createProgressBarMarkers() {
+        const duration = audioPlayer.duration;
+        if (isNaN(duration) || duration <= 0) return;
+        
+        progressBarMarkers.innerHTML = '';
+        
+        for (const groupName in imageSyncData) {
+            // Find the first key (timestamp) in the group
+            const firstTimestampString = Object.keys(imageSyncData[groupName])[0];
+            if (firstTimestampString) {
+                const timestamp = parseTime(firstTimestampString);
+                const percentage = (timestamp / duration) * 100;
+                const marker = document.createElement('div');
+                marker.className = 'progress-marker';
+                marker.style.left = `${percentage}%`;
+                marker.setAttribute('data-title', groupName);
+                progressBarMarkers.appendChild(marker);
+            }
+        }
+    }
+
+    function createJumpToButtons() {
+        jumpToContainer.innerHTML = '';
+        for (const groupName in imageSyncData) {
+            const groupContainer = document.createElement('div');
+            groupContainer.className = 'accordion-group';
+            
+            const header = document.createElement('button');
+            header.className = 'accordion-header';
+            
+            let displayName = groupName;
+            const lastDotIndex = displayName.lastIndexOf('.');
+            if (lastDotIndex > 0) {
+                displayName = displayName.slice(0, lastDotIndex);
+            }
+            displayName = displayName.replace(/_/g, ' ');
+            header.textContent = displayName;
+            
+            const content = document.createElement('div');
+            content.className = 'accordion-content';
+            
+            header.addEventListener('click', () => {
+                const allHeaders = document.querySelectorAll('.accordion-header');
+                const allContents = document.querySelectorAll('.accordion-content');
+
+                allHeaders.forEach(otherHeader => {
+                    if (otherHeader !== header) {
+                        otherHeader.classList.remove('active');
+                    }
+                });
+                allContents.forEach(otherContent => {
+                    otherContent.style.display = 'none';
+                });
+
+                header.classList.toggle('active');
+                content.style.display = header.classList.contains('active') ? 'flex' : 'none';
+            });
+            
+            const subsections = imageSyncData[groupName];
+            for (const timeStr in subsections) {
+                const timestamp = parseTime(timeStr);
+                const filename = subsections[timeStr];
+                
+                const button = document.createElement('button');
+                button.className = 'jump-to-button';
+                let buttonDisplayName = filename;
+                const buttonLastDotIndex = buttonDisplayName.lastIndexOf('.');
+                if (buttonLastDotIndex > 0) {
+                    buttonDisplayName = buttonDisplayName.slice(0, buttonLastDotIndex);
+                }
+                buttonDisplayName = buttonDisplayName.replace(/_/g, ' ');
+                button.textContent = buttonDisplayName;
+                
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    audioPlayer.currentTime = timestamp;
+                });
+                
+                content.appendChild(button);
+            }
+            
+            groupContainer.appendChild(header);
+            groupContainer.appendChild(content);
+            jumpToContainer.appendChild(groupContainer);
+        }
+    }
+
+    // -- Play/Pause and Control handlers --
+        playPauseBtn.addEventListener('click', () => {
+        if (sourceSelect.value === 'youtube') {
+            // YouTube mode
+            if (!ytPlayer) {
+                const id = extractYouTubeId(ytUrlInput.value);
+                if (!id) { alert('Enter a valid YouTube ID or URL'); return; }
+                ensureYTPlayer(id).then(() => {
+                    usingYouTube = true;
+                    youtubeContainer.style.display = 'block';
+                    audioPlayer.pause();
+                    try { ytPlayer.playVideo(); } catch(e){ console.warn(e); }
+                    playPauseBtn.textContent = '⏸';
+                    startYTSyncLoop();
+                });
+                return;
+            }
+            const state = ytPlayer.getPlayerState && ytPlayer.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) {
+                ytPlayer.pauseVideo();
+                playPauseBtn.textContent = '▶';
+                stopYTSyncLoop();
+            } else {
+                audioPlayer.pause();
+                youtubeContainer.style.display = 'block';
+                try { ytPlayer.playVideo(); } catch(e){ console.warn(e); }
+                playPauseBtn.textContent = '⏸';
+                usingYouTube = true;
+                startYTSyncLoop();
+            }
+        } else {
+            // Local MP3 mode
+            // If youtube was active, pause it and stop sync
+            if (usingYouTube && ytPlayer) {
+                try { ytPlayer.pauseVideo(); } catch(e){}
+                stopYTSyncLoop();
+                youtubeContainer.style.display = 'none';
+                usingYouTube = false;
+            }
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playPauseBtn.textContent = '⏸';
+            } else {
+                audioPlayer.pause();
+                playPauseBtn.textContent = '▶';
+            }
+        }
+    });
+
+
+    rewind10Btn.addEventListener('click', rewind10Seconds);
+    forward10Btn.addEventListener('click', forward10Seconds);
+
+    // Add a click event to the repeat button to toggle the loop
+repeatSegmentBtn.addEventListener('click', () => {
+    isRepeatSegmentActive = !isRepeatSegmentActive;
+    repeatSegmentBtn.classList.toggle('active', isRepeatSegmentActive);
+
+    // Disable repeat all if enabling segment repeat
+    if (isRepeatSegmentActive) {
+        segmentRepeatAllMode = 0;
+        repeatAllCount = 0;
+        repeatAllBtn.classList.remove('active');
+        repeatAllTextSpan.textContent = '';
+        repeatAllBtn.title = 'Repeat All Shlokas';
+        console.log('Repeat All deactivated due to Segment Repeat activation.');
+    }
+
+    if (isRepeatSegmentActive) {
+        const sortedTimestamps = Object.keys(flatImageSyncData).map(parseTime).sort((a, b) => a - b);
+        let currentSegmentStart = 0;
+        for (const timestamp of sortedTimestamps) {
+            if (timestamp <= audioPlayer.currentTime) {
+                currentSegmentStart = timestamp;
+            } else {
+                break;
+            }
+        }
+        segmentStart = currentSegmentStart;
+        const nextTimestamp = sortedTimestamps.find(ts => ts > audioPlayer.currentTime);
+        segmentEnd = nextTimestamp || audioPlayer.duration;
+        console.log(`Auto-repeat for segment from ${formatTime(segmentStart)} to ${formatTime(segmentEnd)} is now active.`);
+    } else {
+        segmentStart = 0;
+        segmentEnd = 0;
+        console.log('Repeat segment deactivated.');
+    }
+});
+
+
+        progressBarClickArea.addEventListener('click', (e) => {
+        // compute newTime from click
+        if (sourceSelect.value === 'youtube') {
+            if (!ytPlayer) {
+                console.warn('YT player not initialized.');
+                return;
+            }
+            const trackWidth = progressBarTrack.offsetWidth;
+            const clickX = e.offsetX;
+            const pct = clickX / trackWidth;
+            const dur = ytPlayer.getDuration() || audioPlayer.duration || 0;
+            const newTime = pct * dur;
+            try { ytPlayer.seekTo(newTime, true); } catch (err) { console.warn(err); }
+        } else {
+            if (isNaN(audioPlayer.duration)) {
+                console.warn('Audio duration is not available yet.');
+                return;
+            }
+            const trackWidth = progressBarTrack.offsetWidth;
+            const clickX = e.offsetX;
+            const newTime = (clickX / trackWidth) * audioPlayer.duration;
+            audioPlayer.currentTime = newTime;
+
+            if (isRepeatSegmentActive) {
+                segmentEnd = audioPlayer.currentTime;
+                console.log(`Repeat segment end set to ${formatTime(segmentEnd)}`);
+            }
+        }
+    });
+
+    
+   speedSlider.addEventListener('input', (e) => {
+    const rate = parseFloat(e.target.value);
+    if (usingYouTube && ytPlayer && typeof ytPlayer.setPlaybackRate === 'function') {
+        ytPlayer.setPlaybackRate(rate);
+    } else {
+        audioPlayer.playbackRate = rate;
+    }
+    speedDisplay.textContent = `${rate.toFixed(2)}x`;
+});
+
+    
+   volumeSlider.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    if (usingYouTube && ytPlayer && typeof ytPlayer.setVolume === 'function') {
+        ytPlayer.setVolume(val * 100); // YT volume is 0-100
+        if (val === 0) ytPlayer.mute();
+        else ytPlayer.unMute();
+    } else {
+        audioPlayer.volume = val;
+    }
+});
+
+    
+    // Initialize volume
+    volumeSlider.value = 0.5;
+    audioPlayer.volume = 0.5;
+    ytUrlInput.value = 'ATflA6WOy0I';
+audioPlayer.volume = 0.5;
+volumeSlider.value = 0.5;
+
+// Optional: set YouTube volume if already loaded
+if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
+    ytPlayer.setVolume(50);
+}
+
+ytUrlInput.addEventListener('input', () => {
+  ytLoadBtn.disabled = !ytUrlInput.value.trim();
+});
+ytLoadBtn.disabled = true;
+
+
+
+repeatAllBtn.addEventListener('click', () => {
+    // Cycle through four states: 0 -> 1 -> 2 -> 3 -> 0
+    segmentRepeatAllMode = (segmentRepeatAllMode + 1) % 4;
+
+    if (segmentRepeatAllMode === 0) {
+        repeatAllBtn.classList.remove('active');
+        repeatAllTextSpan.textContent = '';
+        repeatAllBtn.title = 'Repeat All Segments';
+    } else {
+        repeatAllBtn.classList.add('active');
+        repeatAllTextSpan.textContent = ` (${segmentRepeatAllMode}x)`;
+        repeatAllBtn.title = `Repeating All Shlokas (${segmentRepeatAllMode}x)`;
+        isRepeatSegmentActive = false;
+        repeatSegmentBtn.classList.remove('active');
+        console.log('Segment repeat deactivated due to Repeat All activation.');
+        currentSegmentIndex = sortedSegmentTimestamps.findIndex(ts => ts > audioPlayer.currentTime) - 1;
+        if (currentSegmentIndex < 0) currentSegmentIndex = 0;
+    }
+    
+    repeatAllCount = 0;
+    console.log(`Repeat All mode is now: ${segmentRepeatAllMode}.`);
+});
+
+
+// This is the updated timeupdate event listener.
+// It combines the logic for the single-segment repeat and the new repeat-all segments functionality.
+audioPlayer.addEventListener('timeupdate', () => {
+    if (isNaN(audioPlayer.duration)) return;
+
+    updateImage(audioPlayer.currentTime);
+
+    const progressPercentage = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+    progressBarFill.style.width = `${progressPercentage}%`;
+
+    // Check if the single-segment repeat is active and has passed the end point.
+    // If so, handle the single repeat and exit.
+    if (isRepeatSegmentActive) {
+        if (audioPlayer.currentTime >= segmentEnd && segmentEnd > 0) {
+            audioPlayer.currentTime = segmentStart;
+        }
+        return; 
+    }
+
+    // --- Repeat All (Segment) Logic ---
+    if (segmentRepeatAllMode > 0) {
+        const nextSegmentIndex = currentSegmentIndex + 1;
+        const nextSegmentStart = sortedSegmentTimestamps[nextSegmentIndex] || audioPlayer.duration;
+        const currentSegmentStart = sortedSegmentTimestamps[currentSegmentIndex];
+
+        if (audioPlayer.currentTime >= nextSegmentStart) {
+            // Check if we need to repeat the current segment.
+            if (repeatAllCount < segmentRepeatAllMode) {
+                repeatAllCount++;
+                console.log(`Repeating segment, loop ${repeatAllCount} of ${segmentRepeatAllMode}.`);
+                isInternalSeek = true; // Set the flag BEFORE seeking.
+                audioPlayer.currentTime = currentSegmentStart;
+            } else {
+                // All repeats for the current segment are done. Advance to the next one.
+                currentSegmentIndex++;
+                repeatAllCount = 0; // Reset counter for the next segment.
+                console.log(`Finished repeating segment. Moving to next segment.`);
+                
+                // Check if we've reached the end of the entire track.
+                if (currentSegmentIndex >= sortedSegmentTimestamps.length) {
+                    console.log('Finished all segments.');
+                    segmentRepeatAllMode = 0;
+                    repeatAllBtn.classList.remove('active');
+                    const repeatAllTextSpan = repeatAllBtn.querySelector('.repeat-all-text');
+                    repeatAllTextSpan.textContent = '';
+                    repeatAllBtn.title = 'Repeat All Segments';
+                } else {
+                    // Seek to the start of the new segment.
+                    isInternalSeek = true; // Set the flag BEFORE seeking.
+                    audioPlayer.currentTime = sortedSegmentTimestamps[currentSegmentIndex];
+                }
+            }
+        }
+    }
+});
+
+    
+    // Use setInterval to update time displays every second
+    setInterval(() => {
+        if (isNaN(audioPlayer.duration)) return;
+        
+        const elapsedTime = audioPlayer.currentTime;
+        elapsedTimeDisplay.textContent = formatTime(elapsedTime);
+        
+        const remainingTime = audioPlayer.duration - elapsedTime;
+        remainingTimeDisplay.textContent = '-' + formatTime(remainingTime);
+    }, 1000);
+
+audioPlayer.addEventListener('seeked', () => {
+    // If the seek was triggered internally, just reset the flag and return.
+    // Use a small delay to ensure the timeupdate event has fully processed.
+    if (isInternalSeek) {
+        setTimeout(() => {
+            isInternalSeek = false;
+        }, 50); // Small delay to avoid race condition
+        return;
+    }
+
+    // This is a user-initiated seek. Perform the normal logic.
+    updateImage(audioPlayer.currentTime);
+    
+    if (segmentRepeatAllMode > 0) {
+        currentSegmentIndex = sortedSegmentTimestamps.findIndex(ts => ts > audioPlayer.currentTime) - 1;
+        if (currentSegmentIndex < 0) currentSegmentIndex = 0;
+        repeatAllCount = 0;
+        console.log(`Seeked by user. New segment index: ${currentSegmentIndex}`);
+    }
+});
+
+
+    
+    audioPlayer.addEventListener('loadedmetadata', () => {
+        createProgressBarMarkers();
+        createJumpToButtons();
+        // Set the initial remaining time to the total duration
+        remainingTimeDisplay.textContent = '-' + formatTime(audioPlayer.duration);
+    });
+
+    // ---- Silent Fast-Forward Logic ----
+    silentFastFwdBtn.addEventListener('mousedown', () => {
+        isSeeking = true;
+        if (!audioPlayer.paused) {
+            audioPlayer.muted = true;
+            audioPlayer.playbackRate = fastPlaybackRate;
+        }
+    });
+
+    silentFastFwdBtn.addEventListener('mouseup', () => {
+        isSeeking = false;
+        audioPlayer.playbackRate = normalPlaybackRate;
+        audioPlayer.muted = false;
+    });
+
+    silentFastFwdBtn.addEventListener('mouseleave', () => {
+        if (isSeeking) {
+            audioPlayer.playbackRate = normalPlaybackRate;
+            audioPlayer.muted = false;
+            isSeeking = false;
+        }
+    });
+
+    // --- Image Sync Logic ---
+    function updateImage(currentTime) {
+        let newImageFilename = '';
+        let currentTimestamp = -1;
+
+        for (const timeStr in flatImageSyncData) {
+            const timeInSeconds = parseTime(timeStr);
+            if (currentTime >= timeInSeconds && timeInSeconds >= currentTimestamp) {
+                currentTimestamp = timeInSeconds;
+                newImageFilename = flatImageSyncData[timeStr];
+            }
+        }
+        
+        const newSrc = newImageFilename ? baseUrl + newImageFilename : '';
+        if (syncedImage.src !== newSrc) {
+            if (newImageFilename) {
+                syncedImage.src = newSrc;
+                syncedImage.style.display = 'block';
+                
+                let filenameWithoutExtension = newImageFilename.slice(0, -4);
+                filenameWithoutExtension = filenameWithoutExtension.replace(/_/g, ' ');
+                filenameDisplay.textContent = filenameWithoutExtension;
+            } else {
+                syncedImage.src = '';
+                syncedImage.style.display = 'none';
+                filenameDisplay.textContent = '';
+            }
+        }
+    }
+
+    updateImage(0);
+})();
+
+
+</script>
+<!-- YouTube API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+</body>
+</html>
