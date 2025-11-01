@@ -431,14 +431,16 @@
 #home-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 10px; /* 👈 reduced padding for a thinner height */
   background-color: var(--am-gray-medium);
   color: var(--am-white);
   border: none;
   border-radius: var(--border-radius);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.85rem; /* 👈 smaller font */
+  height: 36px;       /* 👈 define compact height */
   transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
@@ -448,6 +450,7 @@
   transform: translateY(-1px);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
 }
+
 
 #home-btn i {
   color: var(--am-accent);
@@ -522,6 +525,51 @@
 .audio-player-container .controls-background:hover {
   box-shadow: 0 3px 8px rgba(0,0,0,0.2);
 }
+.controls-title {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* center text and icon nicely */
+  gap: 10px;
+  padding: 2px 3px;              /* 👈 less vertical padding */
+  line-height: .7;               /* 👈 tighter text spacing */
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  margin-bottom: 10px;
+}
+
+
+.controls-title {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+
+.title-text {
+  flex: 1;
+  text-align: center;
+}
+
+#home-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#home-btn:hover {
+  transform: scale(1.05);
+}
 
 
 </style>
@@ -532,10 +580,17 @@
 <body>
 
  <div class="audio-player-container">
-<!-- Audio source selector & YouTube input -->
- <!-- Title inside the controls bar -->
-  <div class="controls-title">Om Namo Nārāyanāya</div>
- 
+<!-- Title and Home button in one line -->
+<div class="controls-title">
+  <span class="title-text">Om Namo Nārāyanāya</span>
+  <button id="home-btn" title="Home">
+    <div class="icon-wrapper">
+      <i class="fa-solid fa-house"></i>
+      <span class="icon-text">Home</span>
+    </div>
+  </button>
+</div>
+
 <div class="controls-background">
  
        <div style="display:flex; align-items:center; gap:8px;">
@@ -554,12 +609,7 @@
             <span id="speed-display">1.00x</span>
         </div>
 
-<button id="home-btn" title="Home">
-  <div class="icon-wrapper">
-    <i class="fa-solid fa-house"></i>
-    <span class="icon-text">Home</span>
-  </div>
-</button>
+
 
  </div>
 
