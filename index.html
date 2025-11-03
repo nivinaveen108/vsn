@@ -1299,6 +1299,18 @@ fullscreenBtn.addEventListener('click', async () => {
   }
 });
 
+// Keep overlay image synced when main image changes
+const observer = new MutationObserver(() => {
+  const overlayImg = fullscreenOverlay.querySelector('img');
+  if (fullscreenOverlay.style.display === 'flex' && overlayImg) {
+    overlayImg.src = syncedImage.src;
+  }
+});
+
+// Observe the 'src' attribute changes of the main image
+observer.observe(syncedImage, { attributes: true, attributeFilter: ['src'] });
+
+
     rewind10Btn.addEventListener('click', rewind10Seconds);
     forward10Btn.addEventListener('click', forward10Seconds);
 
@@ -1612,5 +1624,3 @@ sourceSelect.addEventListener("change", () => {
 </body>
 </html>
 
-</body>
-</html>
