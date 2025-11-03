@@ -1143,8 +1143,7 @@ function forward10Seconds() {
     }
 
     // -- Play/Pause and Control handlers --
-      // -- Play/Pause and Control handlers --
-playPauseBtn.addEventListener('click', () => {
+   playPauseBtn.addEventListener('click', () => {
   if (sourceSelect.value === 'youtube') {
     // --- YouTube Mode ---
     const id = extractYouTubeId(ytUrlInput.value);
@@ -1161,16 +1160,16 @@ playPauseBtn.addEventListener('click', () => {
         audioPlayer.pause();
 
         try {
-          // Start muted — autoplay allowed
-          ytPlayer.mute();
-          ytPlayer.playVideo();
+          // Safe mute/play
+          if (ytPlayer && typeof ytPlayer.mute === 'function') ytPlayer.mute();
+          if (ytPlayer && typeof ytPlayer.playVideo === 'function') ytPlayer.playVideo();
           playPauseBtn.textContent = '⏸';
           startYTSyncLoop();
 
-          // Unmute after short delay (still inside same user gesture)
+          // Unmute after short delay
           setTimeout(() => {
             try {
-              ytPlayer.unMute();
+              if (ytPlayer && typeof ytPlayer.unMute === 'function') ytPlayer.unMute();
               console.log('YT unmuted after user click');
             } catch (err) {
               console.warn('Unmute failed:', err);
@@ -1186,7 +1185,7 @@ playPauseBtn.addEventListener('click', () => {
     // --- Player already exists ---
     const state = ytPlayer.getPlayerState && ytPlayer.getPlayerState();
     if (state === YT.PlayerState.PLAYING) {
-      ytPlayer.pauseVideo();
+      if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
       playPauseBtn.textContent = '▶';
       stopYTSyncLoop();
     } else {
@@ -1195,16 +1194,16 @@ playPauseBtn.addEventListener('click', () => {
       usingYouTube = true;
 
       try {
-        // Start muted to satisfy autoplay policy
-        ytPlayer.mute();
-        ytPlayer.playVideo();
+        // Safe mute/play
+        if (ytPlayer && typeof ytPlayer.mute === 'function') ytPlayer.mute();
+        if (ytPlayer && typeof ytPlayer.playVideo === 'function') ytPlayer.playVideo();
         playPauseBtn.textContent = '⏸';
         startYTSyncLoop();
 
-        // Unmute after a brief delay (user gesture already valid)
+        // Safe unmute
         setTimeout(() => {
           try {
-            ytPlayer.unMute();
+            if (ytPlayer && typeof ytPlayer.unMute === 'function') ytPlayer.unMute();
             console.log('YT unmuted after user click');
           } catch (err) {
             console.warn('Unmute failed:', err);
@@ -1217,7 +1216,7 @@ playPauseBtn.addEventListener('click', () => {
   } else {
     // --- Local MP3 Mode ---
     if (usingYouTube && ytPlayer) {
-      try { ytPlayer.pauseVideo(); } catch (e) {}
+      try { if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo(); } catch (e) {}
       stopYTSyncLoop();
       youtubeContainer.style.display = 'none';
       usingYouTube = false;
@@ -1232,6 +1231,7 @@ playPauseBtn.addEventListener('click', () => {
     }
   }
 });
+
 
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const imageContainer = document.querySelector('.image-display-container');
@@ -1568,8 +1568,5 @@ sourceSelect.addEventListener("change", () => {
   }
 });
 </script>
-</body>
-</html>
-
 </body>
 </html>
