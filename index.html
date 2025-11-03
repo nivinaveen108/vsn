@@ -1011,7 +1011,30 @@ updateImageSyncSource();
 
 
 
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+const imageContainer = document.querySelector('.image-display-container');
 
+fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        // Enter fullscreen for the image container
+        if (imageContainer.requestFullscreen) {
+            imageContainer.requestFullscreen();
+        } else if (imageContainer.webkitRequestFullscreen) { // Safari
+            imageContainer.webkitRequestFullscreen();
+        } else if (imageContainer.msRequestFullscreen) { // IE11
+            imageContainer.msRequestFullscreen();
+        }
+    } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { // Safari
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { // IE11
+            document.msExitFullscreen();
+        }
+    }
+});
 
 
 
@@ -1233,30 +1256,6 @@ playPauseBtn.addEventListener('click', () => {
   }
 });
 
-const fullscreenBtn = document.getElementById('fullscreen-btn');
-const imageContainer = document.querySelector('.image-display-container');
-
-fullscreenBtn.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-        // Enter fullscreen for the image container
-        if (imageContainer.requestFullscreen) {
-            imageContainer.requestFullscreen();
-        } else if (imageContainer.webkitRequestFullscreen) { // Safari
-            imageContainer.webkitRequestFullscreen();
-        } else if (imageContainer.msRequestFullscreen) { // IE11
-            imageContainer.msRequestFullscreen();
-        }
-    } else {
-        // Exit fullscreen
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { // Safari
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { // IE11
-            document.msExitFullscreen();
-        }
-    }
-});
 
     rewind10Btn.addEventListener('click', rewind10Seconds);
     forward10Btn.addEventListener('click', forward10Seconds);
