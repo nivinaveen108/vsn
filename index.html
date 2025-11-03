@@ -41,14 +41,28 @@
   box-shadow: var(--box-shadow);
 }
 
-.image-display-container {
-  display: flex;
-  flex-direction: column;
+
+/* Hidden by default */
+.image-fullscreen-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  z-index: 9999;
   justify-content: center;
   align-items: center;
-  height: auto;
-  margin-bottom: 1.5rem;
 }
+
+.image-fullscreen-overlay img {
+  max-width: 95%;
+  max-height: 95%;
+  object-fit: contain;
+}
+
+
 
 #synced-image {
   max-width: 100%;
@@ -1231,31 +1245,58 @@ function forward10Seconds() {
     }
   }
 });
-
-
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const imageContainer = document.querySelector('.image-display-container');
 
-fullscreenBtn.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-        // Enter fullscreen for the image container
-        if (imageContainer.requestFullscreen) {
-            imageContainer.requestFullscreen();
-        } else if (imageContainer.webkitRequestFullscreen) { // Safari
-            imageContainer.webkitRequestFullscreen();
-        } else if (imageContainer.msRequestFullscreen) { // IE11
-            imageContainer.msRequestFullscreen();
-        }
-    } else {
-        // Exit fullscreen
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { // Safari
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { // IE11
-            document.msExitFullscreen();
-        }
+// Create overlay once (for mobile fallback)
+const fullscreenOverlay = document.createElement('div');
+fullscreenOverlay.className = 'image-fullscreen-overlay';
+document.body.appendChild(fullscreenOverlay);
+
+// Clicking overlay closes it
+fullscreenOverlay.addEventListener('click', () => {
+  fullscreenOverlay.style.display = 'none';
+});
+
+// Unified fullscreen toggle
+fullscreenBtn.addEventListener('click', async () => {
+  const img = syncedImage;
+  if (!img?.src) return;
+
+  // If overlay is open, close it
+  if (fullscreenOverlay.style.display === 'flex') {
+    fullscreenOverlay.style.display = 'none';
+    return;
+  }
+
+  // If already in native fullscreen, exit
+  if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+    if (document.exitFullscreen) {
+      await document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
     }
+    return;
+  }
+
+  // Try native fullscreen
+  try {
+    if (imageContainer.requestFullscreen) {
+      await imageContainer.requestFullscreen();
+    } else if (imageContainer.webkitRequestFullscreen) {
+      await imageContainer.webkitRequestFullscreen();
+    } else if (imageContainer.msRequestFullscreen) {
+      await imageContainer.msRequestFullscreen();
+    } else {
+      throw new Error('Fullscreen API not supported');
+    }
+  } catch (err) {
+    // Fallback: show overlay
+    fullscreenOverlay.innerHTML = `<img src="${img.src}" alt="Fullscreen Image">`;
+    fullscreenOverlay.style.display = 'flex';
+  }
 });
 
     rewind10Btn.addEventListener('click', rewind10Seconds);
@@ -1568,5 +1609,8 @@ sourceSelect.addEventListener("change", () => {
   }
 });
 </script>
+</body>
+</html>
+
 </body>
 </html>
