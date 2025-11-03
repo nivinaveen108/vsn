@@ -757,6 +757,7 @@ let isInternalSeek = false;
     // YouTube integration & switching
     // -----------------------------
     let ytPlayer = null;
+    let ytReady = false;
     let usingYouTube = false;
     const sourceSelect = document.getElementById('sourceSelect');
     const ytUrlInput = document.getElementById('yt-url-input');
@@ -827,6 +828,7 @@ function goHome() {
           events: {
             onReady: () => {
               console.log('YT player ready for', videoId);
+              ytReady = true; // <-- Add this
               resolve(ytPlayer);
             },
             onStateChange: (e) => {
@@ -1180,7 +1182,10 @@ function forward10Seconds() {
     }
 
     // -- Play/Pause and Control handlers --
-      // -- Play/Pause and Control handlers --
+    // Flag to indicate YouTube player is fully ready
+ytReady = false;
+
+// -- Play/Pause and Control handlers --
 playPauseBtn.addEventListener('click', () => {
   if (sourceSelect.value === 'youtube') {
     // --- YouTube Mode ---
@@ -1196,21 +1201,24 @@ playPauseBtn.addEventListener('click', () => {
         usingYouTube = true;
         youtubeContainer.style.display = 'block';
         audioPlayer.pause();
+        ytReady = true;
 
         try {
           // Start muted — autoplay allowed
-          ytPlayer.mute();
+          if (ytReady && typeof ytPlayer.mute === 'function') ytPlayer.mute();
           ytPlayer.playVideo();
           playPauseBtn.textContent = '⏸';
           startYTSyncLoop();
 
           // Unmute after short delay (still inside same user gesture)
           setTimeout(() => {
-            try {
-              ytPlayer.unMute();
-              console.log('YT unmuted after user click');
-            } catch (err) {
-              console.warn('Unmute failed:', err);
+            if (ytReady && typeof ytPlayer.unMute === 'function') {
+              try {
+                ytPlayer.unMute();
+                console.log('YT unmuted after user click');
+              } catch (err) {
+                console.warn('Unmute failed:', err);
+              }
             }
           }, 300);
         } catch (e) {
@@ -1223,7 +1231,7 @@ playPauseBtn.addEventListener('click', () => {
     // --- Player already exists ---
     const state = ytPlayer.getPlayerState && ytPlayer.getPlayerState();
     if (state === YT.PlayerState.PLAYING) {
-      ytPlayer.pauseVideo();
+      if (ytReady && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
       playPauseBtn.textContent = '▶';
       stopYTSyncLoop();
     } else {
@@ -1233,18 +1241,20 @@ playPauseBtn.addEventListener('click', () => {
 
       try {
         // Start muted to satisfy autoplay policy
-        ytPlayer.mute();
+        if (ytReady && typeof ytPlayer.mute === 'function') ytPlayer.mute();
         ytPlayer.playVideo();
         playPauseBtn.textContent = '⏸';
         startYTSyncLoop();
 
         // Unmute after a brief delay (user gesture already valid)
         setTimeout(() => {
-          try {
-            ytPlayer.unMute();
-            console.log('YT unmuted after user click');
-          } catch (err) {
-            console.warn('Unmute failed:', err);
+          if (ytReady && typeof ytPlayer.unMute === 'function') {
+            try {
+              ytPlayer.unMute();
+              console.log('YT unmuted after user click');
+            } catch (err) {
+              console.warn('Unmute failed:', err);
+            }
           }
         }, 300);
       } catch (e) {
@@ -1254,7 +1264,9 @@ playPauseBtn.addEventListener('click', () => {
   } else {
     // --- Local MP3 Mode ---
     if (usingYouTube && ytPlayer) {
-      try { ytPlayer.pauseVideo(); } catch (e) {}
+      try {
+        if (ytReady && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+      } catch (e) {}
       stopYTSyncLoop();
       youtubeContainer.style.display = 'none';
       usingYouTube = false;
@@ -1269,6 +1281,7 @@ playPauseBtn.addEventListener('click', () => {
     }
   }
 });
+
 
 
 
