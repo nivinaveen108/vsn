@@ -785,34 +785,54 @@ function goHome() {
       console.log('YouTube IFrame API ready');
     };
 
-    // create or load video id into player
-    function ensureYTPlayer(videoId) {
-      return new Promise((resolve) => {
-        if (!videoId) return resolve(null);
-        // if player exists, just load the video
-        if (ytPlayer) {
-          try {
-            ytPlayer.cueVideoById(videoId);
-            return resolve(ytPlayer);
-          } catch (e) { console.warn(e); }
-        }
-        // create new YT.Player
-        ytPlayer = new YT.Player('youtube-player', {
-          height: '0', width: '0', // hidden
-          videoId,
-          playerVars: { controls: 0, disablekb: 1, modestbranding: 1 },
-          events: {
-            onReady: () => {
-              console.log('YT player ready for', videoId);
-              resolve(ytPlayer);
-            },
-            onStateChange: (e) => {
-              // nothing heavy here; sync loop handles updates
-            }
-          }
-        });
-      });
+   function ensureYTPlayer(videoId) {
+  return new Promise((resolve) => {
+    if (!videoId) return resolve(null);
+
+    // If player already exists
+    if (ytPlayer && ytPlayer.loadVideoById) {
+      try {
+        ytPlayer.loadVideoById(videoId);
+        ytPlayer.mute(); // allow autoplay
+        ytPlayer.playVideo(); // start playback
+        setTimeout(() => ytPlayer.unMute(), 500);
+        return resolve(ytPlayer);
+      } catch (e) {
+        console.warn('YT reuse error', e);
+      }
     }
+
+    // Create new player
+    ytPlayer = new YT.Player('youtube-player', {
+      height: '0',
+      width: '0',
+      videoId,
+      playerVars: {
+        controls: 0,
+        disablekb: 1,
+        modestbranding: 1,
+        playsinline: 1
+      },
+      events: {
+        onReady: (event) => {
+          console.log('YT player ready for', videoId);
+          // Autoplay muted to bypass browser restrictions
+          event.target.mute();
+          event.target.playVideo();
+          setTimeout(() => event.target.unMute(), 500);
+          resolve(event.target);
+        },
+        onStateChange: (e) => {
+          // Optional: handle pause/play sync
+          if (e.data === YT.PlayerState.PAUSED) {
+            console.log('YT paused');
+          }
+        }
+      }
+    });
+  });
+}
+
 
     // When user changes source via drop-down
     // When user changes source via drop-down
