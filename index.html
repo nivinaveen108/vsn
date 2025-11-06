@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -750,13 +751,12 @@ if (homeBtn) {
 }
 function updateControlAvailability() {
   const hide = usingYouTube;
-
-  // Only hide these three when using YouTube
+  console.log("UsingYouTube?", hide);
   [silentFastFwdBtn, repeatSegmentBtn, repeatAllBtn].forEach(btn => {
+    if (!btn) return;
     btn.style.display = hide ? "none" : "inline-flex";
   });
 }
-
 
 function goHome() {
   window.location.href = 'https://www.nivi108.com';
