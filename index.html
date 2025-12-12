@@ -557,6 +557,52 @@
   opacity: 0.9;
 }
 
+
+/* Lalitha Sahasranaamam Button — clone of home-btn */
+#lsn-btn {
+  position: relative;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background-color: var(--am-gray-medium);
+  color: var(--am-white);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#lsn-btn:hover {
+  background-color: var(--am-gray-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.7);
+}
+
+#lsn-btn .icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#lsn-btn i {
+  font-size: 1.6rem;
+  color: var(--am-accent);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+#lsn-btn .icon-text {
+  margin-top: 3px;
+  font-size: 0.6rem;
+  color: var(--am-white);
+  letter-spacing: 0.4px;
+  opacity: 0.9;
+}
+
+
 .progress-marker::after {
   background-color: var(--am-gray-dark);
   color: var(--am-white);
@@ -641,6 +687,12 @@
 <!-- Title and Home button in one line -->
 <div class="controls-title">
   <span class="title-text">Om Namo Nārāyanāya</span>
+<button id="lsn-btn" title="Lalitha Sahasranaamam">
+  <div class="icon-wrapper">
+    <i class="fa-solid fa-book"></i>
+    <span class="icon-text">Lalitha Sahasranaamam</span>
+  </div>
+</button>
 <button id="narayaneeyam-btn" title="Nārāyanīyam">
   <div class="icon-wrapper">
     <i class="fa-solid fa-book"></i>
@@ -795,6 +847,13 @@ const narayaneeyamBtn = document.getElementById('narayaneeyam-btn');
 if (narayaneeyamBtn) {
   narayaneeyamBtn.addEventListener('click', () => {
     window.location.href = 'https://nivinaveen108.github.io/narayaneeyam/';
+  });
+}
+
+const lsnBtn = document.getElementById('lsn-btn');
+if (lsnBtn) {
+  lsnBtn.addEventListener('click', () => {
+    window.location.href = 'https://nivinaveen108.github.io/lsn/';
   });
 }
 
